@@ -1,0 +1,58 @@
+name: Rush Hour
+description: Heavy downtown vehicle gridlock causing unpredictable speed drops and route replans
+seed: 101
+sim:
+  tick_seconds: 1.0
+  max_ticks: 400
+  robbery_duration: 15
+map:
+  rows: 7
+  cols: 7
+  block_m: 120.0
+  jitter: 0.1
+  removal_prob: 0.08
+  n_exits: 4
+  arterials: 2
+police:
+  count: 4
+  speed: 18.0
+  report_interval: 2
+  replan_threshold: 0.2
+  capture_radius_m: 14.0
+robber:
+  speed: 11.5
+  vision_radius_m: 160.0
+  temperature: 0.3
+  danger_lambda: 3.0
+  threat_radius_m: 130.0
+  cooldown_ticks: 3
+  memory_ticks: 8
+civilians:
+  count: 45
+  speed: 6.0
+cctv:
+  count: 6
+  placement: chokepoints
+  range_m: 150.0
+  p_detect_max: 0.85
+  noise_sigma_m: 15.0
+alarm:
+  probability: 1.0
+  delay_min: 1
+  delay_max: 3
+surveillance:
+  zones: 1
+  detection_threshold: 0.7
+traffic:
+  base: 1.4
+  civilian_factor: 0.08
+  jam_rate: 0.03
+  jam_severity: 2.2
+  jam_min: 30
+  jam_max: 90
+command:
+  top_k_routes: 3
+  horizon_s: 140.0
+  safety_buffer_s: 4.0
+  switch_gain: 0.15
+  min_route_prob: 0.1

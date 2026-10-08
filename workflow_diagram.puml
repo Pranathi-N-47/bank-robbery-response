@@ -1,0 +1,50 @@
+@startuml
+!theme plain
+left to right direction
+
+skinparam backgroundColor #FFFFFF
+skinparam defaultFontName "Open Sans", sans-serif
+skinparam defaultFontSize 11
+skinparam roundCorner 8
+skinparam shadowing false
+skinparam arrowColor #1e3a8a
+skinparam arrowThickness 1.5
+
+skinparam rectangle {
+  BackgroundColor #F8FAFC
+  BorderColor #3B82F6
+  FontColor #0F172A
+}
+
+title **BRRS Multi-Agent Workflow per Tick (dt = 1.0s)**
+
+rectangle "<b>1. Environment & Traffic</b>\n• Update civilian vehicles\n• Update traffic jams & Ce\n• Travel time = (len/v)*Ce" as P1
+
+rectangle "<b>2. Robber Agent</b>\n• Scan radar (200m)\n• Evasive A* danger cost\n• Softmax exit sample" as P2
+
+rectangle "<b>3. Surveillance Network</b>\n• Bank silent alarm\n• CCTV camera fusion\n• Emit ALERTS & SIGHTINGS" as P3
+
+rectangle "<b>4. Command & Intel</b>\n• Ingest sightings\n• Predict escape paths\n• Publish INTERCEPT_PLAN" as P4
+
+rectangle "<b>5. Dispatch Agent</b>\n• Distance-rank patrols\n• Direct Pursuit unit\n• Encirclement units" as P5
+
+rectangle "<b>6. Patrol Fleet</b>\n• Traffic-adaptive A*\n• Replan on traffic spikes\n• Dynamic suspect tracking" as P6
+
+rectangle "<b>7. Evaluation Engine</b>\n• Check capture criteria\n• Stream Web telemetry" as P7
+
+rectangle "<b>INTERCEPTED</b> (Success)\n• Proximity <= 14m\n• Encircled: >= 2 units <= 28m\n• Same node / Head-on crossing" as Out1 #D1FAE5
+rectangle "<b>ESCAPED</b> (Failure)\n• Robber reaches boundary exit" as Out2 #FFE4E6
+rectangle "<b>TIMEOUT</b>\n• Ticks >= 400" as Out3 #FEF3C7
+
+P1 --> P2
+P2 --> P3
+P3 --> P4
+P4 --> P5
+P5 --> P6
+P6 --> P7
+
+P7 --> Out1 : Captured
+P7 --> Out2 : Escaped
+P7 --> Out3 : Timeout
+
+@enduml

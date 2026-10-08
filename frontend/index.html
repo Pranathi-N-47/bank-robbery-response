@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Real-Time Multi-Agent Bank Robbery Response Simulation</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- HEADER COMMAND BAR -->
+  <header class="header-bar">
+    <div class="brand">
+      <span class="brand-badge">MAS TACTICAL</span>
+      <h1>Daytime Bank Robbery Response System</h1>
+    </div>
+
+    <div class="controls-group">
+      <select id="scenarioSelector" class="scenario-select" title="Scenario Selection"></select>
+      <input type="number" id="seedInput" class="seed-input" placeholder="Seed" title="Simulation Seed">
+      
+      <button id="btnStart" class="btn-ctrl btn-primary" title="Start / Resume">▶ Start</button>
+      <button id="btnPause" class="btn-ctrl" title="Pause">⏸ Pause</button>
+      <button id="btnStep" class="btn-ctrl" title="Manual Step">⏭ Step</button>
+      <button id="btnReset" class="btn-ctrl" title="Reset Simulation">↺ Reset</button>
+
+      <div class="speed-slider-wrapper">
+        <span>Speed:</span>
+        <input type="range" id="speedSlider" min="1" max="20" value="4">
+        <span id="speedValue">4x</span>
+      </div>
+
+      <span id="simStatusBadge" class="status-badge status-undetected">UNDETECTED</span>
+    </div>
+  </header>
+
+  <!-- MAIN VIEWPORT & INSPECTOR -->
+  <main class="main-content">
+    <!-- CANVAS MAP -->
+    <div class="viewport-container">
+      <canvas id="simulationCanvas"></canvas>
+
+      <!-- OVERLAY TOGGLE CHIPS -->
+      <div class="canvas-overlays-toolbar">
+        <div id="togCctv" class="toggle-chip active" data-overlay="cctv">CCTV Cones</div>
+        <div id="togRoutes" class="toggle-chip active" data-overlay="routes">Police Paths</div>
+        <div id="togPredicted" class="toggle-chip active" data-overlay="predicted">Predicted Routes</div>
+        <div id="togIntercept" class="toggle-chip active" data-overlay="intercept">Intercept Points</div>
+        <div id="togBelief" class="toggle-chip active" data-overlay="belief">Belief Ellipse</div>
+        <div id="togTraffic" class="toggle-chip active" data-overlay="traffic">Traffic Heat</div>
+      </div>
+
+      <!-- VISUAL LEGEND -->
+      <div style="position: absolute; top: 16px; left: 16px; background: rgba(255,255,255,0.96); border: 1px solid #cbd5e1; box-shadow: 0 4px 18px rgba(0,0,0,0.1); backdrop-filter: blur(10px); padding: 12px 16px; border-radius: 8px; font-size: 11.5px; z-index: 10; display: flex; flex-direction: column; gap: 6px; max-width: 270px; color: #0f172a;">
+        <span style="font-weight: 700; color: #475569; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px; margin-bottom: 2px;">Map Legend</span>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #e11d48; font-size: 14px;">⚠</span> <strong style="color: #e11d48;">SUSPECT</strong> (Robber)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #0284c7; font-size: 14px;">★</span> <strong style="color: #0284c7;">POLICE</strong> (Patrol Car)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #d97706; font-size: 14px;">$</span> <strong style="color: #d97706;">BANK</strong> (Central Robbery Site)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #e11d48; font-size: 12px;">●</span> <strong style="color: #0f172a;">EXITS</strong> (Boundary Nodes)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #2563eb; font-size: 12px;">●</span> <strong style="color: #2563eb;">STATIONS</strong> (Police Precinct Nodes)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #64748b; font-size: 10px;">●</span> <span style="color: #475569;">Civilians</span> (Traffic)</div>
+        <div style="display: flex; align-items: center; gap: 8px;"><span style="color: #0284c7; font-size: 12px;">◌</span> <span style="color: #475569;">CCTV Cones</span></div>
+        <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 4px 0;">
+        <span style="font-weight: 700; color: #475569; text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;">Lines & Trajectories</span>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 22px; height: 4px; background: #e11d48; border-radius: 2px;"></span>
+          <span style="color: #0f172a; font-weight: 600;">Heavy Civilian Traffic (Rush Hour)</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 22px; border-bottom: 2.5px dashed #9333ea;"></span>
+          <span style="color: #0f172a; font-weight: 600;">Direct Pursuit Path</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 22px; border-bottom: 2.5px dashed #2563eb;"></span>
+          <span style="color: #0f172a; font-weight: 600;">Encirclement Pursuit Path</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 8px;">
+          <span style="display: inline-block; width: 22px; height: 3px; background: #d97706;"></span>
+          <span style="color: #0f172a; font-weight: 600;">Robber Escape Trajectory</span>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT INSPECTOR PANEL -->
+    <aside class="inspector-panel">
+      <nav class="tab-headers">
+        <button class="tab-btn active" data-tab="metricsTab">Metrics</button>
+        <button class="tab-btn" data-tab="agentsTab">Agents</button>
+        <button class="tab-btn" data-tab="messagesTab">Comms Bus</button>
+        <button class="tab-btn" data-tab="scenariosTab">Scenarios</button>
+      </nav>
+
+      <!-- TAB 1: METRICS -->
+      <section id="metricsTab" class="tab-content active">
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Sim Tick</div>
+            <div id="metricTick" class="metric-val">0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Detection Time</div>
+            <div id="metricDetTime" class="metric-val">-- <span class="metric-unit">ticks</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Response Time</div>
+            <div id="metricRespTime" class="metric-val">-- <span class="metric-unit">ticks</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Route Replannings</div>
+            <div id="metricReplans" class="metric-val">0</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Police Distance</div>
+            <div id="metricPoliceDist" class="metric-val">0 <span class="metric-unit">m</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Robber Distance</div>
+            <div id="metricRobberDist" class="metric-val">0 <span class="metric-unit">m</span></div>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-label">Replanning Root Causes</div>
+          <div id="replanBreakdown" style="font-size: 12px; margin-top: 6px; color: var(--text-secondary);">
+            Destination updates: 0 | Traffic jams: 0
+          </div>
+        </div>
+      </section>
+
+      <!-- TAB 2: AGENTS -->
+      <section id="agentsTab" class="tab-content">
+        <div id="agentsListContainer"></div>
+      </section>
+
+      <!-- TAB 3: MESSAGE BUS LOG -->
+      <section id="messagesTab" class="tab-content">
+        <div id="messageLogContainer" class="message-list"></div>
+      </section>
+
+      <!-- TAB 4: SCENARIOS & BATCH -->
+      <section id="scenariosTab" class="tab-content">
+        <div style="font-size: 13px; margin-bottom: 14px;">
+          <strong>Preconfigured Testing Scenarios</strong>
+          <p style="color: var(--text-secondary); margin-top: 4px;">Select and evaluate scenarios targeting specific environmental edge cases.</p>
+        </div>
+        <div id="scenarioCardsContainer"></div>
+      </section>
+    </aside>
+  </main>
+
+  <!-- OUTCOME MODAL -->
+  <div id="outcomeModal" class="modal-overlay">
+    <div class="modal-card">
+      <h2 id="modalOutcomeTitle" class="modal-title">MISSION COMPLETED</h2>
+      <p id="modalOutcomeDesc" style="color: var(--text-secondary); margin-bottom: 16px; font-size: 14px;"></p>
+      <div id="modalMetricsSummary" style="font-size: 13px; text-align: left; margin-bottom: 20px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px;"></div>
+      <button id="modalBtnRestart" class="btn-ctrl btn-primary" style="width: 100%; justify-content: center;">Restart Run</button>
+    </div>
+  </div>
+
+  <!-- APPLICATION SCRIPTS -->
+  <script src="/static/js/socket.js?v=6"></script>
+  <script src="/static/js/renderer.js?v=6"></script>
+  <script src="/static/js/ui/panels.js?v=6"></script>
+  <script src="/static/js/main.js?v=6"></script>
+</body>
+</html>

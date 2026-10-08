@@ -1,0 +1,58 @@
+name: Fast Getaway
+description: Robber in high-speed sports vehicle testing rapid tactical replanning
+seed: 404
+sim:
+  tick_seconds: 1.0
+  max_ticks: 350
+  robbery_duration: 12
+map:
+  rows: 7
+  cols: 7
+  block_m: 120.0
+  jitter: 0.1
+  removal_prob: 0.1
+  n_exits: 4
+  arterials: 2
+police:
+  count: 4
+  speed: 15.0
+  report_interval: 2
+  replan_threshold: 0.2
+  capture_radius_m: 10.0
+robber:
+  speed: 18.0
+  vision_radius_m: 230.0
+  temperature: 0.2
+  danger_lambda: 4.0
+  threat_radius_m: 160.0
+  cooldown_ticks: 3
+  memory_ticks: 12
+civilians:
+  count: 20
+  speed: 7.0
+cctv:
+  count: 6
+  placement: chokepoints
+  range_m: 160.0
+  p_detect_max: 0.92
+  noise_sigma_m: 14.0
+alarm:
+  probability: 0.9
+  delay_min: 10
+  delay_max: 20
+surveillance:
+  zones: 1
+  detection_threshold: 0.65
+traffic:
+  base: 1.0
+  civilian_factor: 0.04
+  jam_rate: 0.01
+  jam_severity: 1.3
+  jam_min: 20
+  jam_max: 50
+command:
+  top_k_routes: 3
+  horizon_s: 140.0
+  safety_buffer_s: 2.5
+  switch_gain: 0.15
+  min_route_prob: 0.1
